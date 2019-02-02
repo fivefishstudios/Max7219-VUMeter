@@ -15,7 +15,7 @@
 
 int ctr;
 
-int d = 10;  // animation delay
+int d = 5;  // animation delay
 
 int VUMeter[8];
 int VULeftValue;     // values 0..7
@@ -39,7 +39,7 @@ void UpdateVUMeterDisplay(){
 void ClearVUMeterDisplay(){
   for (int i=0; i<8; i++){
     lc.setRow(0, i, 0);
-    delay(d*2);
+    delay(d*4);
   }
 }
 
@@ -87,23 +87,31 @@ void loop()
   // populate VUMeter[] array with left channel values
   for (int i=7; i>=VULeftValue; i--){  
     VUMeter[i] = VUMeter[i] | 0b001000000; 
+    lc.setRow(0, i, VUMeter[i]);
+    delay(d);
   }
   // blank out rest of left channel leds 
-  for (int i=VULeftValue-1; i>=0; i--){
+  for (int i=0; i<VULeftValue-1; i++){
     VUMeter[i] = VUMeter[i] & 0b00001000;
+    lc.setRow(0, i, VUMeter[i]);
+    delay(d);
   }
 
   VURightValue   = rand() % 8;  // 0..7
   // populate VUMeter[] array with left channel values
   for (int i=7; i>=VURightValue; i--){  
     VUMeter[i] = VUMeter[i] | 0b00001000; 
+    lc.setRow(0, i, VUMeter[i]);
+    delay(d);
   }
   // blank out rest of left channel leds 
-  for (int i=VURightValue-1; i>=0; i--){
+  for (int i=0; i<VURightValue-1; i++){
     VUMeter[i] = VUMeter[i] & 0b01000000;
+    lc.setRow(0, i, VUMeter[i]);
+    delay(d);
   }
   
-  UpdateVUMeterDisplay();
-  ClearVUMeterDisplay();
+  // UpdateVUMeterDisplay();
+  // ClearVUMeterDisplay();
   
 }
