@@ -15,11 +15,14 @@
 
 int ctr;
 
-int d = 5;  // animation delay
+int d = 9;  // animation delay
 
 int VUMeter[8];
 int VULeftValue;     // values 0..7
 int VURightValue;    // values 0..7
+
+int oldVULeftValue;
+int oldVURightValue;
 
 //  * Pin 12 is connected to the DATA IN-pin of the first MAX7221
 //  * Pin 11 is connected to the CLK-pin of the first MAX7221
@@ -27,24 +30,19 @@ int VURightValue;    // values 0..7
 // LedControl(dataPin, clockPin, csPin, numDevices) 
 LedControl lc = LedControl(DATA_PIN, CLK_PIN, CS_PIN, 1); 
 
+// void UpdateVUMeterDisplay(){
+//   for (int i=7; i>=0; i--){
+//     lc.setRow(0, i, VUMeter[i]);
+//     delay(d);  
+//   }
+// }
 
-void UpdateVUMeterDisplay(){
-  // update VU meter display
-  for (int i=7; i>=0; i--){
-    lc.setRow(0, i, VUMeter[i]);
-    delay(d);  
-  }
-}
-
-void ClearVUMeterDisplay(){
-  for (int i=0; i<8; i++){
-    lc.setRow(0, i, 0);
-    delay(d*4);
-  }
-}
-
-
-
+// void ClearVUMeterDisplay(){
+//   for (int i=0; i<8; i++){
+//     lc.setRow(0, i, 0);
+//     delay(d*4);
+//   }
+// }
 
 void setup()
 {
@@ -65,9 +63,11 @@ void setup()
   lc.setIntensity(0, 15); 
 
   // initial value
-  VULeftValue   = rand() % 8;
-  VURightValue  = rand() % 8;
+  VULeftValue   = 7;  // i.e. leftmost led
+  VURightValue  = 7;  // i.e. letmost led
 
+  oldVULeftValue = VULeftValue;
+  oldVURightValue = VURightValue; 
 }
 
 void loop()
@@ -84,34 +84,43 @@ void loop()
   #endif
 
   VULeftValue   = rand() % 8;  // 0..7
-  // populate VUMeter[] array with left channel values
-  for (int i=7; i>=VULeftValue; i--){  
-    VUMeter[i] = VUMeter[i] | 0b001000000; 
-    lc.setRow(0, i, VUMeter[i]);
-    delay(d);
+  if (VULeftValue < oldVULeftValue) {
+    // populate VUMeter[] array with left channel values
+    // new value is to the right side of old value... so turn on all LEDs to the right
+    for (int i=oldVULeftValue; i>=VULeftValue; i--){  
+      VUMeter[i] = VUMeter[i] | 0b001000000; 
+      lc.setRow(0, i, VUMeter[i]);
+      delay(d);
+    }
+  } else {
+    // new value is to the left side of old value... so turn off LEDs to the left
+    for (int i=oldVULeftValue; i<=VULeftValue; i++){  
+      VUMeter[i] = VUMeter[i] & 0b00001000;
+      lc.setRow(0, i, VUMeter[i]);
+      delay(d);
+    }
   }
-  // blank out rest of left channel leds 
-  for (int i=0; i<VULeftValue-1; i++){
-    VUMeter[i] = VUMeter[i] & 0b00001000;
-    lc.setRow(0, i, VUMeter[i]);
-    delay(d);
-  }
+  // update old values 
+  oldVULeftValue = VULeftValue;
 
   VURightValue   = rand() % 8;  // 0..7
-  // populate VUMeter[] array with left channel values
-  for (int i=7; i>=VURightValue; i--){  
-    VUMeter[i] = VUMeter[i] | 0b00001000; 
-    lc.setRow(0, i, VUMeter[i]);
-    delay(d);
+  if (VURightValue < oldVURightValue) {
+    // populate VUMeter[] array with right channel values
+    // new value is to the right side of old value... so turn on all LEDs to the right
+    for (int i=oldVURightValue; i>=VURightValue; i--){  
+      VUMeter[i] = VUMeter[i] | 0b00001000; 
+      lc.setRow(0, i, VUMeter[i]);
+      delay(d);
+    }
+  } else {
+    // new value is to the left side of old value... so turn off LEDs to the left
+    for (int i=oldVURightValue; i<=VURightValue; i++){  
+      VUMeter[i] = VUMeter[i] & 0b01000000;
+      lc.setRow(0, i, VUMeter[i]);
+      delay(d);
+    }
   }
-  // blank out rest of left channel leds 
-  for (int i=0; i<VURightValue-1; i++){
-    VUMeter[i] = VUMeter[i] & 0b01000000;
-    lc.setRow(0, i, VUMeter[i]);
-    delay(d);
-  }
-  
-  // UpdateVUMeterDisplay();
-  // ClearVUMeterDisplay();
-  
+  // update old values 
+  oldVURightValue = VURightValue;
+
 }
